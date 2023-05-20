@@ -13,5 +13,14 @@
 </script>
 
 <template>
-  <button @click="increment">숫자 세기: {{ count }}</button>
+  <div>
+    <button @click="increment">숫자 세기: {{ count }}</button>
+  </div>
 </template>
+
+<style scope>
+  div {
+    margin: 0 auto;
+    margin-bottom: 10px;
+  }
+</style>
