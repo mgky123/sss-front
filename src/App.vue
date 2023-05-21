@@ -1,10 +1,11 @@
 <script setup>
+  import { ref } from 'vue'
   import FullCalendar from '@fullcalendar/vue3'
   import dayGridPlugin from '@fullcalendar/daygrid'
   import timeGridPlugin from '@fullcalendar/timegrid'
   import interactionPlugin from '@fullcalendar/interaction'
   import { INITIAL_EVENTS, createEventId } from './event-utils'
-
+  import EventModal from './components/EventModal.vue'
 
   let calendarOptions = {
     plugins: [
@@ -35,41 +36,51 @@
   };
 
   let currentEvents = [];
-
-
+  let showEventModal = ref(false);
+  let modalTop = ref(0);
+  let modalLeft = ref(0);
+  
 
   function handleDateSelect(selectInfo) {
-    let title = prompt('Please enter a new title for your event')
-    let calendarApi = selectInfo.view.calendar
+    showEventModal.value = true;
+    modalTop = selectInfo.jsEvent.clientY + 'px';
+    modalLeft = selectInfo.jsEvent.clientX + 'px';
+//    let title = prompt('Please enter a new title for your event')
+//    let calendarApi = selectInfo.view.calendar
 
-    calendarApi.unselect() // clear date selection
+//    calendarApi.unselect() // clear date selection
 
-    if (title) {
-      calendarApi.addEvent({
-        id: createEventId(),
-        title,
-        start: selectInfo.startStr,
-        end: selectInfo.endStr,
-        allDay: selectInfo.allDay
-      })
-    }
+//    if (title) {
+//      calendarApi.addEvent({
+//        id: createEventId(),
+//        title,
+//        start: selectInfo.startStr,
+//        end: selectInfo.endStr,
+//        allDay: selectInfo.allDay
+//      })
+//    }
+  }
+
+  function handleModalClose(){
+    showEventModal.value = false;
   }
 </script>
 
 <template>
   <div class='demo-app'>
     <div class='demo-app-main'>
-      <FullCalendar
-        class='demo-app-calendar'
+      <FullCalendar 
+        class='demo-app-calendar' 
         v-bind:options='calendarOptions'
-        v-bind:select="handleDateSelect"
-      >
-        <template v-slot:eventContent='arg'>
-          <b>{{ arg.timeText }}</b>
-          <i>{{ arg.event.title }}</i>
-        </template>
+        v-bind:select="handleDateSelect">
       </FullCalendar>
     </div>
+    <EventModal 
+      v-if="showEventModal" 
+      :top="modalTop" 
+      :left="modalLeft" 
+      @close="handleModalClose">
+    </EventModal>
   </div>
 </template>
 
