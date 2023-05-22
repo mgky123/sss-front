@@ -64,6 +64,12 @@
   function handleModalClose(){
     showEventModal.value = false;
   }
+
+  function handleModalOutsideClose(event){
+    if(event.target !== event.currentTarget){
+      showEventModal.value = false;
+    }
+  }
 </script>
 
 <template>
@@ -79,7 +85,8 @@
       v-if="showEventModal" 
       :top="modalTop" 
       :left="modalLeft" 
-      @close="handleModalClose">
+      @close="handleModalClose"
+      @click="handleModalOutsideClose" >
     </EventModal>
   </div>
 </template>
