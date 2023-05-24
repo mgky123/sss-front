@@ -25,8 +25,8 @@
     selectMirror: true,
     dayMaxEvents: true,
     weekends: true,
-    select: handleDateSelect
-//  eventClick: handleEventClick(),
+    select: handleDateSelect,
+    eventClick: handleEventSelect
 //  eventsSet: handleEvents()
     /* you can update a remote database when these fire:
     eventAdd:
@@ -39,35 +39,43 @@
   let showEventModal = ref(false);
   let modalTop = ref(0);
   let modalLeft = ref(0);
-  
+  let selectInfoTemp = ref(null);
 
   function handleDateSelect(selectInfo) {
     showEventModal.value = true;
     modalTop = selectInfo.jsEvent.clientY + 'px';
     modalLeft = selectInfo.jsEvent.clientX + 'px';
-//    let title = prompt('Please enter a new title for your event')
-//    let calendarApi = selectInfo.view.calendar
-
-//    calendarApi.unselect() // clear date selection
-
-//    if (title) {
-//      calendarApi.addEvent({
-//        id: createEventId(),
-//        title,
-//        start: selectInfo.startStr,
-//        end: selectInfo.endStr,
-//        allDay: selectInfo.allDay
-//      })
-//    }
+    selectInfoTemp.value = selectInfo;
   }
 
   function handleModalClose(){
     showEventModal.value = false;
   }
 
-  function handleModalOutsideClose(event){
-    if(event.target !== event.currentTarget){
-      showEventModal.value = false;
+  function handleModalItemSelected(item){
+    showEventModal.value = false;
+
+    let calendarApi = selectInfoTemp.value.view.calendar;
+    calendarApi.unselect();
+
+    if(item.title){
+      calendarApi.addEvent({
+        id : createEventId(),
+        title : item.title,
+        start : selectInfoTemp.value.startStr,
+        end : selectInfoTemp.value.endStr,
+        allDay : selectInfoTemp.value.allDay,
+        backgroundColor : item.color
+      });
+    }
+
+    selectInfoTemp.value = null;
+  }
+
+  function handleEventSelect(selectInfo){
+    const event = selectInfo.event;
+    if(confirm('정말로 삭제하시겠습니까?')){
+      event.remove();
     }
   }
 </script>
@@ -77,8 +85,9 @@
     <div class='demo-app-main'>
       <FullCalendar 
         class='demo-app-calendar' 
-        v-bind:options='calendarOptions'
-        v-bind:select="handleDateSelect">
+        :options='calendarOptions'
+        :select="handleDateSelect"
+        :eventClick="handleEventSelect">
       </FullCalendar>
     </div>
     <EventModal 
@@ -86,7 +95,7 @@
       :top="modalTop" 
       :left="modalLeft" 
       @close="handleModalClose"
-      @click="handleModalOutsideClose" >
+      @item-click="handleModalItemSelected">
     </EventModal>
   </div>
 </template>
