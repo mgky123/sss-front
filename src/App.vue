@@ -7,15 +7,27 @@
   import EventModal from './components/EventModal.vue'
   import axios from 'axios'
 
+  const ExpReasonList = ref([]);
+  ExpReasonList.value = [
+    { title : "휴가", color : 'red' },
+    { title : "개인사유", color : 'green' },
+    { title : "기타", color : 'purple' },
+  ]
+
   let events = ref(null);
   onMounted(()=>{
-    axios.get('http://localhost:3000/events').then(response => {
+    axios.get('http://localhost:3000/SelectEvents').then(response => {
       response.data.forEach(item => {
+        let color = ExpReasonList.value.find(reason => reason.title === item.title);
+        if(!color){
+          color = {title : "default", color : 'deepblue'}
+        }
         calendarOptions.value.events.push({
           id: item.id,
-          title: item.username, 
+          title: item.title, 
           start: item.startdate, 
-          end: item.enddate, 
+          end: item.enddate,
+          backgroundColor: color.color,
           extendedProps:{
             eventtype: item.eventtype,
             editable: item.editable
@@ -34,17 +46,13 @@
       timeGridPlugin,
       interactionPlugin
     ],
-    headerToolbar: {
-      left: 'prev,next today',
-      center: 'title',
-      right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    },
     events : [],
     initialView: 'dayGridMonth',
     selectable: true,
     selectMirror: true,
     dayMaxEvents: true,
     weekends: true,
+    locale: 'ko',
     select: handleDateSelect,
     eventClick: handleEventSelect
   });
@@ -78,7 +86,7 @@
         allDay: selectInfoTemp.value.allDay,
         backgroundColor : item.color,
         extendedProps:{
-          editable: true
+          editable: "true"
         }
       });
     }
@@ -87,9 +95,9 @@
   }
 
   function handleEventSelect(selectInfo){
-    if(selectInfo.event.extendedProps?.editable == true  && confirm('정말로 삭제하시겠습니까?')){
+    if(selectInfo.event.extendedProps?.editable === "true"  && confirm('정말로 삭제하시겠습니까?')){
 
-      const eventIndex = calendarOptions.value.events.findIndex(e => e.id === selectInfo.event.id);
+      const eventIndex = calendarOptions.value.events.findIndex(e => e.id == selectInfo.event.id);
       if(eventIndex > -1){
         calendarOptions.value.events.splice(eventIndex,1);
       }
@@ -98,12 +106,18 @@
     }
   }
 
-  let data = ref(null);
-  function fetchData(){
-    axios.get('http://localhost:3000/data').then(response => {
-      data.value = response.data;
+  function insertEventDB(){
+    let eventsTemp = [];
+    calendarOptions.value.events.forEach((item) => {
+      if(item.extendedProps?.editable === true){
+        eventsTemp.push(item);
+      }
+    });
+    
+    axios.post('http://localhost:3000/InsertEvents', eventsTemp).then(response => {
+      console.log('Insert 성공', response.data);
     }).catch(error => {
-      console.error(error);
+      console.error('Insert 실패', error);
     });
   }
 </script>
@@ -125,6 +139,9 @@
       @close="handleModalClose"
       @item-click="handleModalItemSelected">
     </EventModal>
+  </div>
+  <div>
+    <button @click="insertEventDB">반영하기</button>
   </div>
 </template>
 
